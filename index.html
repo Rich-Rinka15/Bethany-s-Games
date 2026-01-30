@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bethany's Spelling Game</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Start Screen -->
+    <div id="startScreen" class="screen active">
+        <div class="container">
+            <h1 class="main-title">BETHANY'S SPELLING GAME</h1>
+            <div class="level-selection">
+                <h2>Choose Your Word List</h2>
+                <!-- Buttons will be dynamically created here by JavaScript -->
+                <!-- No inline onclick handlers - all handled via addEventListener -->
+                <div id="setsButtons" class="level-buttons">
+                    <!-- Loading... -->
+                </div>
+            </div>
+            <button id="adminBtn" class="admin-button">Admin</button>
+        </div>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="gameScreen" class="screen">
+        <div class="game-container">
+            <!-- Header -->
+            <header class="game-header">
+                <div class="header-top">
+                    <button id="exitGameBtn" class="exit-button">Exit</button>
+                    <div class="score-display">
+                        <span class="score-label">Score:</span>
+                        <span id="currentScore" class="score-value">0</span>
+                    </div>
+                </div>
+                <div class="progress-info">
+                    <span class="round-label">Round <span id="currentRound">1</span></span>
+                    <span class="word-progress"><span id="currentWordIndex">1</span> / <span id="totalWords">0</span></span>
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar" id="progressBar"></div>
+                </div>
+            </header>
+
+            <!-- Round Title -->
+            <div class="round-title-container">
+                <h2 id="roundTitle" class="round-title">Round 1: Watch & Repeat</h2>
+            </div>
+
+            <!-- Game Content Area -->
+            <div class="game-content">
+                <!-- Round 1: Watch & Repeat -->
+                <div id="round1Content" class="round-content">
+                    <div class="word-display">
+                        <button id="playWordBtn" class="play-button">
+                            <span class="play-icon">🔊</span>
+                            <span>Play Word</span>
+                        </button>
+                        <div id="wordDisplay" class="word-text"></div>
+                    </div>
+                    <div id="keyboardContainer" class="keyboard-container"></div>
+                    <div id="round1UnscrambleSection" class="unscramble-section hidden">
+                        <div class="selected-letters-container">
+                            <div class="selected-letters-label">Click letters in order:</div>
+                            <div id="selectedLetters" class="selected-letters"></div>
+                        </div>
+                        <button id="checkUnscrambleBtn" class="action-button" disabled>Check Answer</button>
+                    </div>
+                </div>
+
+                <!-- Round 2: Build the Word -->
+                <div id="round2Content" class="round-content hidden">
+                    <div class="word-display">
+                        <button id="playWordBtn2" class="play-button">
+                            <span class="play-icon">🔊</span>
+                            <span>Play Word</span>
+                        </button>
+                        <div id="wordDisplay2" class="word-text"></div>
+                    </div>
+                    <div class="chunks-section">
+                        <div class="chunks-available" id="chunksAvailable"></div>
+                        <div class="chunks-selected" id="chunksSelected"></div>
+                        <button id="checkChunksBtn" class="action-button" disabled>Check Answer</button>
+                    </div>
+                </div>
+
+                <!-- Round 3: Spell It Solo -->
+                <div id="round3Content" class="round-content hidden">
+                    <div class="word-display">
+                        <button id="playWordBtn3" class="play-button">
+                            <span class="play-icon">🔊</span>
+                            <span>Play Word</span>
+                        </button>
+                    </div>
+                    <div class="spelling-section">
+                        <input type="text" id="spellingInput" class="spelling-input" placeholder="Type the word here..." autocomplete="off" spellcheck="false">
+                        <button id="checkSpellingBtn" class="action-button" disabled>Check Spelling</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Feedback Area -->
+            <div id="feedbackArea" class="feedback-area"></div>
+
+            <!-- Navigation -->
+            <div class="game-navigation">
+                <button id="nextWordBtn" class="nav-button hidden">Next Word</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Completion Screen -->
+    <div id="completionScreen" class="screen">
+        <div class="container">
+            <h1 class="main-title">🎉 Congratulations! 🎉</h1>
+            <p class="completion-message">You've completed all rounds!</p>
+            <p class="final-score">Final Score: <span id="finalScore">0</span></p>
+            <button id="playAgainBtn" class="action-button">Play Again</button>
+        </div>
+    </div>
+
+    <!-- Password Prompt Modal -->
+    <div id="passwordModal" class="modal">
+        <div class="modal-content">
+            <h2>Admin Access</h2>
+            <p>Please enter the password to access admin settings:</p>
+            <input type="password" id="passwordInput" class="password-input" placeholder="Enter password" autocomplete="off">
+            <div class="modal-actions">
+                <button id="submitPasswordBtn" class="modal-button primary">Submit</button>
+                <button id="cancelPasswordBtn" class="modal-button secondary">Cancel</button>
+            </div>
+            <div id="passwordError" class="password-error"></div>
+        </div>
+    </div>
+
+    <!-- Admin Screen -->
+    <div id="adminScreen" class="screen">
+        <div class="admin-container">
+            <div class="admin-header">
+                <h1 class="admin-title">Admin Settings</h1>
+                <button id="backToStartBtn" class="back-button">← Back to Game</button>
+            </div>
+            
+            <div class="admin-tabs">
+                <button class="tab-btn active" data-tab="sets">Word List Sets</button>
+                <button class="tab-btn" data-tab="words">Edit Words</button>
+            </div>
+
+            <div class="admin-content">
+                <!-- Sets Tab -->
+                <div id="setsTab" class="tab-content active">
+                    <div class="sets-header">
+                        <h2>Word List Sets</h2>
+                        <button id="addSetBtn" class="add-word-btn">+ Create New Set</button>
+                    </div>
+                    <div id="setsList" class="sets-list"></div>
+                </div>
+
+                <!-- Words Tab -->
+                <div id="wordsTab" class="tab-content">
+                    <div class="set-selector">
+                        <label for="setSelector">Select Set to Edit:</label>
+                        <select id="setSelector" class="set-select">
+                            <option value="">-- Select a Set --</option>
+                        </select>
+                    </div>
+                    
+                    <div id="wordEditSection" class="word-edit-section hidden">
+                        <div class="word-edit-tabs">
+                            <button class="word-tab-btn active" data-word-tab="amateur">Amateur Words</button>
+                            <button class="word-tab-btn" data-word-tab="expert">Expert Words</button>
+                        </div>
+                        
+                        <div class="word-edit-content">
+                            <div id="amateurWordEdit" class="word-edit-tab-content active">
+                                <div class="word-list-header">
+                                    <h3>Amateur Level Words</h3>
+                                    <button id="addAmateurWordBtn" class="add-word-btn">+ Add Word</button>
+                                </div>
+                                <div id="amateurWordList" class="word-list"></div>
+                            </div>
+                            
+                            <div id="expertWordEdit" class="word-edit-tab-content">
+                                <div class="word-list-header">
+                                    <h3>Expert Level Words</h3>
+                                    <button id="addExpertWordBtn" class="add-word-btn">+ Add Word</button>
+                                </div>
+                                <div id="expertWordList" class="word-list"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="admin-actions">
+                <button id="saveWordsBtn" class="save-button">Save Changes</button>
+                <button id="resetWordsBtn" class="reset-button">Reset to Default</button>
+                <button id="exportWordsBtn" class="export-button">Export Words</button>
+                <button id="importWordsBtn" class="import-button">Import Words</button>
+                <input type="file" id="importFileInput" accept=".json" style="display: none;">
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="game.js"></script>
+    <script type="module" src="admin.js"></script>
+</body>
+</html>
