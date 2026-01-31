@@ -24,11 +24,17 @@ body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     min-height: 100vh;
+    min-height: -webkit-fill-available;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 1rem;
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
     color: var(--text-dark);
+    overflow-x: hidden;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .screen {
@@ -36,6 +42,7 @@ body {
     width: 100%;
     max-width: 900px;
     animation: fadeIn 0.3s ease-in;
+    overflow-x: hidden;
 }
 
 .screen.active {
@@ -50,6 +57,41 @@ body {
     to {
         opacity: 1;
         transform: translateY(0);
+    }
+}
+
+/* Confetti when a word is correct */
+.confetti-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9999;
+    overflow: hidden;
+}
+
+.confetti-piece {
+    position: absolute;
+    top: -12px;
+    width: 10px;
+    height: 10px;
+    animation: confetti-fall linear forwards;
+}
+
+.confetti-piece-round {
+    border-radius: 50%;
+}
+
+@keyframes confetti-fall {
+    from {
+        transform: translateY(0) rotate(0deg);
+        opacity: 1;
+    }
+    to {
+        transform: translateY(100vh) rotate(720deg);
+        opacity: 0.6;
     }
 }
 
@@ -74,6 +116,12 @@ body {
     font-size: 1.5rem;
     margin-bottom: 2rem;
     font-weight: 600;
+}
+
+#modeContainer {
+    display: flex;
+    opacity: 1;
+    visibility: visible;
 }
 
 .level-buttons {
@@ -119,6 +167,7 @@ body {
 
 /* Game Screen */
 .game-container {
+    position: relative;
     background: var(--card-bg);
     border-radius: 24px;
     padding: 2rem;
@@ -212,6 +261,202 @@ body {
     width: 0%;
 }
 
+/* Effects layer: visual overlays only; never part of game flow or main app DOM */
+#effects-layer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9997;
+    overflow: hidden;
+}
+
+/* Balloons at top – uneven bouquet; round with white string (rendered inside #effects-layer) */
+.balloons-row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 0.35rem;
+    padding: 0.5rem 0.75rem;
+    min-height: 80px;
+    margin-bottom: 0.5rem;
+    position: relative;
+}
+
+.balloon-wrap {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    position: relative;
+}
+
+/* Uneven bouquet: each balloon at a slightly different height/offset so they cluster like a bouquet */
+.balloon-wrap:nth-child(6n+1) { transform: translateY(-8px) translateX(-4px); }
+.balloon-wrap:nth-child(6n+2) { transform: translateY(4px) translateX(6px); }
+.balloon-wrap:nth-child(6n+3) { transform: translateY(-4px) translateX(2px); }
+.balloon-wrap:nth-child(6n+4) { transform: translateY(6px) translateX(-6px); }
+.balloon-wrap:nth-child(6n+5) { transform: translateY(-6px) translateX(4px); }
+.balloon-wrap:nth-child(6n+6) { transform: translateY(2px) translateX(-2px); }
+
+.balloon-wrap::after {
+    content: '';
+    display: block;
+    width: 2px;
+    height: 22px;
+    background: linear-gradient(to bottom, rgba(255,255,255,0.95), rgba(255,255,255,0.75));
+    border-radius: 1px;
+    margin-top: -3px;
+    transform-origin: top center;
+    box-shadow: 0 0 4px rgba(255,255,255,0.3);
+    animation: stringWiggle 2.2s ease-in-out infinite;
+}
+
+.balloon-wrap:nth-child(odd)::after {
+    animation-delay: -0.3s;
+}
+
+.balloon-wrap:nth-child(3n)::after {
+    animation-delay: -0.6s;
+}
+
+@keyframes stringWiggle {
+    0%, 100% { transform: rotate(-4deg); }
+    50% { transform: rotate(4deg); }
+}
+
+.balloon {
+    width: 38px;
+    height: 44px;
+    border-radius: 50%;
+    box-shadow:
+        inset -10px -8px 20px -4px rgba(255,255,255,0.65),
+        inset 8px 6px 14px -4px rgba(0,0,0,0.12),
+        inset 2px 2px 6px rgba(255,255,255,0.2),
+        0 4px 10px rgba(0,0,0,0.15),
+        0 1px 3px rgba(0,0,0,0.1);
+    transform-origin: center center;
+    position: relative;
+    border: 1px solid rgba(255,255,255,0.25);
+}
+
+.balloon::before {
+    content: '';
+    position: absolute;
+    top: 8%;
+    left: 18%;
+    width: 28%;
+    height: 22%;
+    background: radial-gradient(ellipse at 30% 30%, rgba(255,255,255,0.9), transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.balloon::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 8px;
+    height: 5px;
+    background: rgba(0,0,0,0.35);
+    border-radius: 50% 50% 40% 40% / 60% 60% 40% 40%;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.2);
+}
+
+.balloon-inflate {
+    animation: balloonPop 0.35s ease-out;
+}
+
+@keyframes balloonPop {
+    0% { transform: scale(0); opacity: 0; }
+    70% { transform: scale(1.15); }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* Balloon pop-out: when advancing to next round, balloons "pop" then disappear */
+.balloon-pop-out {
+    animation: balloonPopOut 0.45s ease-out forwards;
+    pointer-events: none;
+}
+
+@keyframes balloonPopOut {
+    0% { transform: scale(1); opacity: 1; }
+    40% { transform: scale(1.35); opacity: 1; }
+    100% { transform: scale(1.8); opacity: 0; }
+}
+
+/* Floating balloons – rise, drift, fade when points awarded */
+.floating-balloons {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9998;
+    overflow: hidden;
+}
+
+.balloon-float {
+    position: absolute;
+    bottom: 18%;
+    left: 50%;
+    width: 48px;
+    height: 56px;
+    margin-left: -24px;
+    border-radius: 50%;
+    box-shadow:
+        inset -12px -10px 24px -4px rgba(255,255,255,0.6),
+        inset 10px 8px 18px -4px rgba(0,0,0,0.12),
+        inset 3px 3px 8px rgba(255,255,255,0.15),
+        0 5px 14px rgba(0,0,0,0.18),
+        0 2px 4px rgba(0,0,0,0.1);
+    animation: balloonFloat 4.5s ease-out forwards;
+    transform-origin: center bottom;
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+.balloon-float::before {
+    content: '';
+    position: absolute;
+    top: 10%;
+    left: 20%;
+    width: 30%;
+    height: 24%;
+    background: radial-gradient(ellipse at 30% 30%, rgba(255,255,255,0.85), transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.balloon-float::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 10px;
+    height: 6px;
+    background: rgba(0,0,0,0.35);
+    border-radius: 50% 50% 40% 40% / 60% 60% 40% 40%;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.2);
+}
+
+@keyframes balloonFloat {
+    0% {
+        transform: translate(0, 0) scale(1);
+        opacity: 1;
+    }
+    100% {
+        transform: translate(var(--drift-x, 0), -95vh) scale(0.9);
+        opacity: 0;
+    }
+}
+
 .round-title-container {
     text-align: center;
     margin-bottom: 2rem;
@@ -219,6 +464,48 @@ body {
 
 .round-title {
     font-size: 1.8rem;
+    font-weight: 700;
+}
+
+/* Next round preview (2s between rounds; balloons + trumpet then this) */
+.next-round-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(102, 126, 234, 0.85);
+    z-index: 100;
+    animation: nextRoundFadeIn 0.35s ease-out;
+}
+
+.next-round-overlay.hidden {
+    display: none;
+}
+
+@keyframes nextRoundFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.next-round-card {
+    text-align: center;
+    padding: 2.5rem 3rem;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 24px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+}
+
+.next-round-label {
+    font-size: 1rem;
+    color: var(--text-light);
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.next-round-title {
+    font-size: 1.75rem;
     font-weight: 700;
     color: var(--primary);
     margin: 0;
@@ -429,9 +716,19 @@ body {
     box-shadow: var(--shadow);
     animation: popIn 0.2s ease;
     border: 2px solid var(--primary);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Letter tile lit up when announcing (Round 2 first-error spelling) */
+.letter-tile.highlight {
+    background: var(--primary);
+    color: white;
+    transform: scale(1.08);
+    box-shadow: 0 0 12px rgba(102, 126, 234, 0.5);
 }
 
 /* Letter tile with remove button (Round 1) */
+
 .letter-tile.removable {
     cursor: pointer;
     transition: transform 0.2s ease;
@@ -585,6 +882,67 @@ body {
     cursor: not-allowed;
 }
 
+.chunk-item-used {
+    background: #e2e8f0 !important;
+    color: #94a3b8 !important;
+    border-color: #cbd5e1 !important;
+    cursor: default !important;
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+.chunk-item-used:hover {
+    transform: none;
+    background: #e2e8f0 !important;
+    color: #94a3b8 !important;
+}
+
+/* Chunk in build row but still visible in pool */
+.chunk-item-in-build {
+    opacity: 0.7;
+    border-style: dashed;
+}
+
+/* Long words (expert etc.): shrink letter/chunk boxes so they fit on screen */
+#gameScreen.long-word .letter-tile,
+#gameScreen.long-word .letter-tile.removable {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    max-width: 36px;
+    font-size: 1.1rem;
+}
+
+#gameScreen.long-word .letter-row {
+    gap: 0.35rem;
+    padding: 0.6rem;
+    min-height: 56px;
+}
+
+#gameScreen.long-word .keyboard-key {
+    width: 36px;
+    height: 36px;
+    font-size: 1.1rem;
+}
+
+#gameScreen.long-word .chunk-item,
+#gameScreen.long-word .chunk-selected {
+    padding: 0.5rem 0.9rem;
+    font-size: 1rem;
+}
+
+#gameScreen.long-word .word-text {
+    font-size: 1.6rem;
+}
+
+#gameScreen.long-word .remove-letter-btn {
+    width: 18px;
+    height: 18px;
+    font-size: 1rem;
+    top: -6px;
+    right: -6px;
+}
+
 .chunks-selected {
     display: flex;
     flex-wrap: wrap;
@@ -616,6 +974,20 @@ body {
     transform: scale(1.05);
 }
 
+/* Round 2 text attempt (type word before letter tiles) */
+.round2-text-attempt {
+    width: 100%;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.round2-text-attempt.hidden {
+    display: none;
+}
+
 /* Spelling Input (Round 3) */
 .spelling-section {
     width: 100%;
@@ -634,7 +1006,7 @@ body {
     margin-bottom: 1.5rem;
     color: var(--text-dark);
     letter-spacing: 0.1em;
-    text-transform: lowercase;
+    /* No text-transform: allow capital letters when Shift is used (Round 3 sentences) */
     touch-action: manipulation;
 }
 
@@ -646,6 +1018,9 @@ body {
 
 /* Action Buttons */
 .action-button {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
     background: linear-gradient(135deg, var(--success), #3ab5ad);
     color: white;
     border: none;
@@ -741,12 +1116,53 @@ body {
     display: none;
 }
 
+/* TEMPORARY: Skip Round 1 – remove this block when removing skip feature */
+.skip-round-btn {
+    display: block;
+    margin: 0 auto 1.5rem;
+    padding: 0.6rem 1.25rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--primary);
+    background: transparent;
+    border: 2px solid var(--primary);
+    border-radius: 10px;
+    cursor: pointer;
+    box-shadow: var(--shadow);
+}
+.skip-round-btn:hover {
+    background: var(--primary);
+    color: white;
+}
+/* End Skip Round 1 */
+
 /* Completion Screen */
 .completion-message {
     font-size: 1.5rem;
     color: #ffffff;
     margin: 2rem 0;
     font-weight: 500;
+}
+
+.round-scores-breakdown {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    padding: 1.25rem 2rem;
+    margin: 1.5rem 0;
+    text-align: left;
+    max-width: 280px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.round-score-line {
+    font-size: 1.15rem;
+    color: #ffffff;
+    margin: 0.5rem 0;
+}
+
+.round-score-line strong {
+    color: var(--warning);
 }
 
 .final-score {
@@ -759,6 +1175,35 @@ body {
 
 .final-score span {
     color: var(--warning);
+}
+
+.words-one-point-section {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    padding: 1.25rem 2rem;
+    margin: 1.5rem 0;
+    text-align: left;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.words-one-point-section.hidden {
+    display: none;
+}
+
+.words-one-point-title {
+    font-size: 1rem;
+    color: #ffffff;
+    margin: 0 0 0.5rem 0;
+    font-weight: 600;
+}
+
+.words-one-point-list {
+    font-size: 1.1rem;
+    color: rgba(255, 255, 255, 0.95);
+    margin: 0;
+    line-height: 1.5;
 }
 
 /* Admin Button */
@@ -1543,34 +1988,51 @@ body {
     transform: translateY(-2px);
 }
 
-/* Responsive Design */
+/* Responsive Design – tablet and mobile */
 @media (max-width: 768px) {
     .main-title {
         font-size: 2rem;
+        line-height: 1.2;
+        margin-bottom: 2rem;
+    }
+
+    .container {
+        padding: 1.25rem;
     }
 
     .level-buttons {
         flex-direction: column;
         align-items: center;
+        gap: 1rem;
     }
 
     .level-btn {
         width: 100%;
         max-width: 300px;
+        min-height: 48px;
+        padding: 1rem 1.5rem;
     }
 
     .game-container {
-        padding: 1.5rem;
+        padding: 1rem;
+        width: 100%;
+        max-width: 100%;
+        overflow-x: hidden;
+    }
+
+    .game-header {
+        padding: 0.75rem 0;
     }
 
     .header-top {
         flex-direction: column;
-        gap: 1rem;
+        gap: 0.75rem;
         align-items: stretch;
     }
 
     .exit-button {
         width: 100%;
+        min-height: 44px;
     }
 
     .score-display {
@@ -1578,111 +2040,335 @@ body {
     }
 
     .round-title {
-        font-size: 1.4rem;
+        font-size: 1.35rem;
+        word-wrap: break-word;
+    }
+
+    .game-content {
+        min-height: 320px;
+        padding: 0.5rem 0;
+    }
+
+    .round-content {
+        width: 100%;
+        max-width: 100%;
+        padding: 0 0.5rem;
+    }
+
+    .word-display {
+        margin-bottom: 1.25rem;
     }
 
     .word-text {
-        font-size: 2rem;
-    }
-    
-    /* Letter tiles responsive sizing */
-    .letter-tile {
-        width: 45px;
-        height: 45px;
-        min-width: 45px;
-        max-width: 45px;
-        font-size: 1.3rem;
-    }
-    
-    .selected-letter-container {
-        width: 45px;
-        height: 45px;
-        min-width: 45px;
-        max-width: 45px;
-        font-size: 1.3rem;
-    }
-    
-    .letter-row {
-        gap: 0.4rem;
+        font-size: 1.75rem;
         padding: 0.75rem;
+        min-height: 56px;
+        flex-wrap: wrap;
+        justify-content: center;
     }
-    
+
+    .play-button {
+        min-height: 48px;
+        padding: 0.875rem 1.5rem;
+        font-size: 1rem;
+    }
+
+    /* Letter tiles – tablet/small tablet */
+    .letter-tile {
+        width: 44px;
+        height: 44px;
+        min-width: 44px;
+        max-width: 44px;
+        font-size: 1.25rem;
+    }
+
+    .letter-tile.removable {
+        min-width: 44px;
+        max-width: 44px;
+    }
+
+    .selected-letter-container {
+        width: 44px;
+        height: 44px;
+        min-width: 44px;
+        max-width: 44px;
+        font-size: 1.25rem;
+    }
+
+    .letter-row {
+        gap: 0.35rem;
+        padding: 0.6rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
     .error-badge,
     .remove-letter-btn {
         width: 18px;
         height: 18px;
-        font-size: 12px;
-        top: -5px;
-        right: -5px;
+        font-size: 11px;
+        top: -4px;
+        right: -4px;
+    }
+
+    .keyboard-container {
+        gap: 0.4rem;
+        padding: 0.75rem;
+        justify-content: center;
     }
 
     .keyboard-key {
-        width: 45px;
-        height: 45px;
-        font-size: 1.3rem;
-    }
-
-    .spelling-input {
+        width: 44px;
+        height: 44px;
+        min-width: 44px;
+        max-width: 44px;
         font-size: 1.2rem;
     }
 
-    /* Letter tiles on small phones */
+    .keyboard-key.scrambled-key {
+        min-width: 44px;
+        max-width: 44px;
+    }
+
+    .spelling-input,
+    .round2-text-attempt .spelling-input {
+        width: 100%;
+        max-width: 100%;
+        font-size: 1.1rem;
+        padding: 1rem;
+        min-height: 48px;
+    }
+
+    .round2-text-attempt {
+        width: 100%;
+        padding: 0 0.5rem;
+    }
+
+    .action-button,
+    .checkSpellingBtn,
+    .checkUnscrambleBtn,
+    .checkChunksBtn {
+        min-height: 48px;
+        padding: 0.875rem 1.5rem;
+        font-size: 1rem;
+    }
+
+    .chunks-section {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .chunks-available,
+    .chunks-selected {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .chunk-item,
+    .chunk-selected {
+        font-size: 0.95rem;
+        padding: 0.6rem 1rem;
+    }
+
+    .next-round-card {
+        padding: 1.5rem 2rem;
+        margin: 1rem;
+    }
+
+    .next-round-title {
+        font-size: 1.5rem;
+    }
+
+    .feedback-area {
+        font-size: 1.1rem;
+        padding: 0.75rem;
+    }
+
+    #nextWordBtn {
+        min-height: 48px;
+        padding: 0.875rem 1.5rem;
+    }
+
+    /* Completion / results screen on mobile */
+    .completion-message {
+        font-size: 1.35rem;
+        margin: 1.5rem 0.75rem;
+    }
+
+    .round-scores-breakdown {
+        padding: 1rem 1.25rem;
+        margin: 1rem 0.5rem;
+        max-width: 100%;
+    }
+
+    .round-score-line {
+        font-size: 1.05rem;
+    }
+
+    .final-score {
+        font-size: 1.75rem;
+        margin: 0.75rem 0;
+    }
+
+    .words-one-point-section {
+        padding: 1rem 1.25rem;
+        margin: 1rem 0.5rem;
+        max-width: 100%;
+    }
+
+    .words-one-point-list {
+        font-size: 1rem;
+        word-wrap: break-word;
+    }
+
+    .play-again-btn {
+        min-height: 48px;
+        padding: 0.875rem 1.5rem;
+    }
+}
+
+/* Small phones */
+@media (max-width: 480px) {
+    body {
+        padding: 0.75rem;
+    }
+
+    .main-title {
+        font-size: 1.5rem;
+        letter-spacing: 0.05em;
+        margin-bottom: 2rem;
+    }
+
+    .level-selection h2 {
+        font-size: 1.25rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .level-btn {
+        max-width: 100%;
+        min-height: 48px;
+    }
+
+    .game-container {
+        padding: 0.75rem;
+    }
+
+    .round-title {
+        font-size: 1.2rem;
+    }
+
+    .word-text {
+        font-size: 1.5rem;
+        min-height: 48px;
+        padding: 0.6rem;
+    }
+
     .letter-tile {
         width: 40px;
         height: 40px;
         min-width: 40px;
         max-width: 40px;
-        font-size: 1.2rem;
+        font-size: 1.1rem;
     }
-    
+
+    .letter-tile.removable {
+        min-width: 40px;
+        max-width: 40px;
+    }
+
     .selected-letter-container {
         width: 40px;
         height: 40px;
         min-width: 40px;
         max-width: 40px;
-        font-size: 1.2rem;
+        font-size: 1.1rem;
     }
-    
+
     .letter-row {
-        gap: 0.3rem;
+        gap: 0.25rem;
         padding: 0.5rem;
     }
-    
+
     .error-badge,
     .remove-letter-btn {
         width: 16px;
         height: 16px;
-        font-size: 11px;
-    }
-
-    .chunk-item,
-    .chunk-selected {
-        font-size: 1rem;
-        padding: 0.6rem 1.2rem;
-    }
-}
-
-@media (max-width: 480px) {
-    .main-title {
-        font-size: 1.5rem;
-        letter-spacing: 0.05em;
+        font-size: 10px;
+        top: -3px;
+        right: -3px;
     }
 
     .keyboard-key {
         width: 40px;
         height: 40px;
-        font-size: 1.1rem;
+        min-width: 40px;
+        max-width: 40px;
+        font-size: 1.05rem;
     }
 
-    .word-text {
-        font-size: 1.5rem;
+    .keyboard-key.scrambled-key {
+        min-width: 40px;
+        max-width: 40px;
+    }
+
+    .keyboard-container {
+        padding: 0.5rem;
+        gap: 0.35rem;
+    }
+
+    .spelling-input,
+    .round2-text-attempt .spelling-input {
+        font-size: 1rem;
+        padding: 0.875rem;
+        min-height: 44px;
+    }
+
+    .chunk-item,
+    .chunk-selected {
+        font-size: 0.9rem;
+        padding: 0.5rem 0.875rem;
+    }
+
+    .next-round-card {
+        padding: 1.25rem 1.5rem;
+    }
+
+    .next-round-title {
+        font-size: 1.35rem;
     }
 
     .admin-button {
-        bottom: 15px;
-        left: 15px;
-        padding: 0.4rem 0.6rem;
-        font-size: 0.7rem;
+        bottom: max(15px, env(safe-area-inset-bottom));
+        left: max(15px, env(safe-area-inset-left));
+        padding: 0.5rem 0.75rem;
+        font-size: 0.75rem;
+    }
+}
+
+/* Very small phones (e.g. narrow portrait) */
+@media (max-width: 360px) {
+    .main-title {
+        font-size: 1.35rem;
+    }
+
+    .letter-tile,
+    .keyboard-key {
+        width: 36px;
+        height: 36px;
+        min-width: 36px;
+        max-width: 36px;
+        font-size: 1rem;
+    }
+
+    .letter-tile.removable,
+    .keyboard-key.scrambled-key {
+        min-width: 36px;
+        max-width: 36px;
+    }
+
+    .word-text {
+        font-size: 1.35rem;
     }
 }
 

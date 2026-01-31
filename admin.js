@@ -62,9 +62,8 @@ function initAdmin() {
     backToStartBtn.addEventListener('click', () => {
         adminScreen.classList.remove('active');
         startScreen.classList.add('active');
-        // Reload active sets when returning to start screen
-        if (window.loadActiveSets) {
-            window.loadActiveSets();
+        if (window.renderModes) {
+            window.renderModes();
         }
     });
 

@@ -2,21 +2,30 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#667eea">
     <title>Bethany's Spelling Game</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <!-- Effects layer: balloons and other visual effects only; never touches game state or main app DOM -->
+    <div id="effects-layer" aria-hidden="true"></div>
     <!-- Start Screen -->
     <div id="startScreen" class="screen active">
         <div class="container">
             <h1 class="main-title">BETHANY'S SPELLING GAME</h1>
             <div class="level-selection">
                 <h2>Choose Your Word List</h2>
-                <!-- Buttons will be dynamically created here by JavaScript -->
-                <!-- No inline onclick handlers - all handled via addEventListener -->
-                <div id="setsButtons" class="level-buttons">
-                    <!-- Loading... -->
+                <!-- Mode buttons: always in HTML so they always show; JS attaches behavior -->
+                <div id="modeContainer" class="level-buttons">
+                    <button type="button" id="btnAmateur" class="level-btn amateur" data-mode-button="true" data-set-id="default" data-level="amateur" aria-label="Select Amateur">
+                        <span class="level-icon">📚</span>
+                        <span class="level-name">Amateur</span>
+                    </button>
+                    <button type="button" id="btnExpert" class="level-btn expert" data-mode-button="true" data-set-id="default" data-level="expert" aria-label="Select Expert">
+                        <span class="level-icon">⭐</span>
+                        <span class="level-name">Expert</span>
+                    </button>
                 </div>
             </div>
             <button id="adminBtn" class="admin-button">Admin</button>
@@ -49,16 +58,30 @@
                 <h2 id="roundTitle" class="round-title">Round 1: Watch & Repeat</h2>
             </div>
 
+            <!-- Next round preview (2s between rounds; balloons + trumpet then this, then load round) -->
+            <div id="nextRoundOverlay" class="next-round-overlay hidden" aria-live="polite">
+                <div class="next-round-card">
+                    <p class="next-round-label">Next up</p>
+                    <h2 id="nextRoundTitle" class="next-round-title">Round 2: Spell the Word</h2>
+                </div>
+            </div>
+
             <!-- Game Content Area -->
             <div class="game-content">
-                <!-- Round 1: Watch & Repeat -->
-                <div id="round1Content" class="round-content">
+                <!-- Round 2 activity: Spell the Word (unscramble) -->
+                <div id="round1Content" class="round-content hidden">
+                    <!-- TEMPORARY: Skip Round 2 – remove this button and the "Skip Round 2" block in game.js to delete -->
+                    <button type="button" id="skipRound2Btn" class="skip-round-btn">Skip Round 2</button>
                     <div class="word-display">
                         <button id="playWordBtn" class="play-button">
                             <span class="play-icon">🔊</span>
                             <span>Play Word</span>
                         </button>
                         <div id="wordDisplay" class="word-text"></div>
+                    </div>
+                    <div id="round2TextAttemptSection" class="round2-text-attempt">
+                        <input type="text" id="round2SpellingInput" class="spelling-input" placeholder="Type the word here..." autocomplete="off" spellcheck="false">
+                        <button type="button" id="round2CheckSpellingBtn" class="action-button" disabled>Check Answer</button>
                     </div>
                     <div id="keyboardContainer" class="keyboard-container"></div>
                     <div id="round1UnscrambleSection" class="unscramble-section hidden">
@@ -70,8 +93,10 @@
                     </div>
                 </div>
 
-                <!-- Round 2: Build the Word -->
+                <!-- Round 1 activity: Build the Word (chunks) -->
                 <div id="round2Content" class="round-content hidden">
+                    <!-- TEMPORARY: Skip Round 1 – remove this button and the "Skip Round 1" block in game.js to delete -->
+                    <button type="button" id="skipRound1Btn" class="skip-round-btn">Skip Round 1</button>
                     <div class="word-display">
                         <button id="playWordBtn2" class="play-button">
                             <span class="play-icon">🔊</span>
@@ -86,17 +111,17 @@
                     </div>
                 </div>
 
-                <!-- Round 3: Spell It Solo -->
+                <!-- Round 3: Sentence Dictation -->
                 <div id="round3Content" class="round-content hidden">
                     <div class="word-display">
                         <button id="playWordBtn3" class="play-button">
                             <span class="play-icon">🔊</span>
-                            <span>Play Word</span>
+                            <span>Play Sentence</span>
                         </button>
                     </div>
                     <div class="spelling-section">
-                        <input type="text" id="spellingInput" class="spelling-input" placeholder="Type the word here..." autocomplete="off" spellcheck="false">
-                        <button id="checkSpellingBtn" class="action-button" disabled>Check Spelling</button>
+                        <input type="text" id="spellingInput" class="spelling-input" placeholder="Type the sentence here..." autocomplete="off" spellcheck="false">
+                        <button id="checkSpellingBtn" class="action-button" disabled>Check Answer</button>
                     </div>
                 </div>
             </div>
@@ -116,7 +141,9 @@
         <div class="container">
             <h1 class="main-title">🎉 Congratulations! 🎉</h1>
             <p class="completion-message">You've completed all rounds!</p>
-            <p class="final-score">Final Score: <span id="finalScore">0</span></p>
+            <div id="roundScoresBreakdown" class="round-scores-breakdown"></div>
+            <div id="wordsWithOnePointSection" class="words-one-point-section hidden"></div>
+            <p class="final-score">Total Score: <span id="finalScore">0</span></p>
             <button id="playAgainBtn" class="action-button">Play Again</button>
         </div>
     </div>
